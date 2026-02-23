@@ -17,13 +17,13 @@ namespace ModernContextMenuManager.Models
         {
             AppInfo = appInfo;
             PackageInfo = packageInfo;
-            Clsids = appInfo.ContextMenuGuids.Select(c =>
+            ContextMenuItems = appInfo.ContextMenuItems.Select(c =>
             {
-                if (blockedClsids.TryGetValue(c, out var blockedClsidType))
+                if (blockedClsids.TryGetValue(c.Clsid, out var blockedClsidType))
                 {
-                    return new ClsidCheckModel(c, false, blockedClsidType != PackagedComHelper.BlockedClsidType.LocalMachine);
+                    return new ContextMenuItemCheckModel(c, false, blockedClsidType != PackagedComHelper.BlockedClsidType.LocalMachine);
                 }
-                return new ClsidCheckModel(c, true, true);
+                return new ContextMenuItemCheckModel(c, true, true);
             }).ToArray();
 
             if (string.IsNullOrEmpty(AppInfo.DisplayName))
@@ -40,7 +40,7 @@ namespace ModernContextMenuManager.Models
 
         public PackageInfo PackageInfo { get; }
 
-        public IReadOnlyList<ClsidCheckModel> Clsids { get; }
+        public IReadOnlyList<ContextMenuItemCheckModel> ContextMenuItems { get; }
 
         public string DisplayName { get; }
 

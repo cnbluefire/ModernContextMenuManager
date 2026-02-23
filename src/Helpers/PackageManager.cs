@@ -89,7 +89,7 @@ namespace ModernContextMenuManager.Helpers
 
             if (xmlDocument != null)
             {
-                IReadOnlyList<Guid>? clsids = null;
+                IReadOnlyList<ContextMenuItem>? clsids = null;
 
                 var namespaceManager = new XmlNamespaceManager(xmlDocument.NameTable);
 
@@ -103,16 +103,16 @@ namespace ModernContextMenuManager.Helpers
 
                 if ((nodes1?.Count ?? 0) + (nodes2?.Count ?? 0) > 0)
                 {
-
-                    var list = new List<Guid>((nodes1?.Count ?? 0) + (nodes2?.Count ?? 0));
+                    var list = new List<ContextMenuItem>((nodes1?.Count ?? 0) + (nodes2?.Count ?? 0));
                     if (nodes1 != null)
                     {
                         for (int i = 0; i < nodes1.Count; i++)
                         {
+                            var id = nodes1[i]?.Attributes?["Id"]?.Value ?? "";
                             var clsid = nodes1[i]?.Attributes?["Clsid"]?.Value;
                             if (Guid.TryParse(clsid, out var guid))
                             {
-                                list.Add(guid);
+                                list.Add(new(id, guid));
                             }
                         }
                     }
@@ -121,10 +121,11 @@ namespace ModernContextMenuManager.Helpers
                     {
                         for (int i = 0; i < nodes2.Count; i++)
                         {
+                            var id = nodes2[i]?.Attributes?["Id"]?.Value ?? "";
                             var clsid = nodes2[i]?.Attributes?["Clsid"]?.Value;
                             if (Guid.TryParse(clsid, out var guid))
                             {
-                                list.Add(guid);
+                                list.Add(new(id, guid));
                             }
                         }
                     }
@@ -270,7 +271,9 @@ namespace ModernContextMenuManager.Helpers
         }
     }
 
-    public record class AppInfo(string DisplayName, string IconPath, bool AppListEntry, IReadOnlyList<Guid> ContextMenuGuids);
+    public record class ContextMenuItem(string Id, Guid Clsid);
+
+    public record class AppInfo(string DisplayName, string IconPath, bool AppListEntry, IReadOnlyList<ContextMenuItem> ContextMenuItems);
 
     public record class PackageInfo(
         string PackageInstallLocation,

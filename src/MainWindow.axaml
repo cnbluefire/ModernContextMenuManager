@@ -39,11 +39,11 @@
 									<TextBlock Text="{Binding DisplayName}" FontSize="14" LineHeight="22" Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,4" />
 								</Grid>
 							</Expander.Header>
-							<ItemsControl ItemsSource="{Binding Clsids}" Margin="60,8,12,8">
+							<ItemsControl ItemsSource="{Binding ContextMenuItems}" Margin="60,8,12,8">
 								<ItemsControl.ItemTemplate>
-									<DataTemplate x:DataType="models:ClsidCheckModel">
+									<DataTemplate x:DataType="models:ContextMenuItemCheckModel">
 										<CheckBox Margin="0,4,0,4" IsChecked="{Binding Enabled,Mode=TwoWay}" IsEnabled="{Binding CanModify}">
-											<TextBlock Text="{Binding Clsid}" FontFamily="Consolas, Segoe UI" TextWrapping="Wrap" />
+											<TextBlock Text="{Binding DisplayName}" FontFamily="Consolas, Segoe UI" TextWrapping="Wrap" />
 										</CheckBox>
 									</DataTemplate>
 								</ItemsControl.ItemTemplate>

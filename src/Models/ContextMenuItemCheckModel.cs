@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace ModernContextMenuManager.Models
 {
-    public partial class ClsidCheckModel : ObservableObject
+    public partial class ContextMenuItemCheckModel : ObservableObject
     {
         private bool enabled;
 
-        public ClsidCheckModel(Guid clsid, bool enabled, bool canModify)
+        public ContextMenuItemCheckModel(ContextMenuItem contextMenuItem, bool enabled, bool canModify)
         {
-            Clsid = clsid;
+            ContextMenuItem = contextMenuItem;
             CanModify = canModify;
             this.enabled = enabled;
         }
 
-        public Guid Clsid { get; }
+        public ContextMenuItem ContextMenuItem { get; }
 
         public bool CanModify { get; }
 
@@ -28,9 +28,18 @@ namespace ModernContextMenuManager.Models
             get => enabled;
             set => SetProperty(ref enabled, value,
                 onPropertyChanging: (oldValue, newValue) =>
-                    PackagedComHelper.SetBlockedClsid(Clsid, PackagedComHelper.BlockedClsidType.CurrentUser, !newValue),
+                    PackagedComHelper.SetBlockedClsid(ContextMenuItem.Clsid, PackagedComHelper.BlockedClsidType.CurrentUser, !newValue),
                 notifyWhenNotChanged: true,
                 asyncNotifyWhenNotChanged: true);
+        }
+
+        public string DisplayName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ContextMenuItem.Id)) return $"{ContextMenuItem.Clsid:B}";
+                return $"{ContextMenuItem.Id}\n{ContextMenuItem.Clsid:B}";
+            }
         }
     }
 }
