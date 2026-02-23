@@ -56,9 +56,13 @@ namespace ModernContextMenuManager.ViewModels
                             var appInfo = await PackageManager.GetPackageAppInfoAsync(packageInfo);
                             if (appInfo != null && appInfo.ContextMenuItems.Count > 0)
                             {
-                                if (string.IsNullOrEmpty(search) 
-                                    || appInfo.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase) 
-                                    || appInfo.ContextMenuItems.Any(c => GuidContains(c.Clsid, search) || c.Id.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                                if (string.IsNullOrEmpty(search)
+                                    || appInfo.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                    || appInfo.ContextMenuItems.Any(
+                                        c => GuidContains(c.Clsid, search)
+                                                         || c.Type.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                                         || c.Id.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                                         || c.Title?.Contains(search, StringComparison.OrdinalIgnoreCase) is true))
                                 {
                                     list.Add(new PackagedAppModel(appInfo, packageInfo, dict));
                                 }

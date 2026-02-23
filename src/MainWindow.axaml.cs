@@ -3,6 +3,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using ModernContextMenuManager.Helpers;
 using ModernContextMenuManager.ViewModels;
 
 namespace ModernContextMenuManager;
@@ -14,6 +15,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         this.DataContext = VM;
         this.Loaded += MainWindow_Loaded;
+        this.Closed += MainWindow_Closed;
 
         LayoutRoot.PropertyChanged += static (s, a) =>
         {
@@ -40,4 +42,10 @@ public partial class MainWindow : Window
             ((ButtonAutomationPeer)ControlAutomationPeer.CreatePeerForElement(SearchButton)).Invoke();
         }
     }
+
+    private void MainWindow_Closed(object? sender, System.EventArgs e)
+    {
+        PackagedComHelper.DeleteMCMMFolder();
+    }
+
 }

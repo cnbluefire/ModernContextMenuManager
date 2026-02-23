@@ -108,11 +108,12 @@ namespace ModernContextMenuManager.Helpers
                     {
                         for (int i = 0; i < nodes1.Count; i++)
                         {
+                            var type = nodes1[i]?.ParentNode?.Attributes?["Type"]?.Value ?? "";
                             var id = nodes1[i]?.Attributes?["Id"]?.Value ?? "";
                             var clsid = nodes1[i]?.Attributes?["Clsid"]?.Value;
                             if (Guid.TryParse(clsid, out var guid))
                             {
-                                list.Add(new(id, guid));
+                                list.Add(new(type, id, guid, PackagedComHelper.TryGetExplorerCommandTitle(guid, type)));
                             }
                         }
                     }
@@ -121,11 +122,12 @@ namespace ModernContextMenuManager.Helpers
                     {
                         for (int i = 0; i < nodes2.Count; i++)
                         {
+                            var type = nodes2[i]?.ParentNode?.Attributes?["Type"]?.Value ?? "";
                             var id = nodes2[i]?.Attributes?["Id"]?.Value ?? "";
                             var clsid = nodes2[i]?.Attributes?["Clsid"]?.Value;
                             if (Guid.TryParse(clsid, out var guid))
                             {
-                                list.Add(new(id, guid));
+                                list.Add(new(type, id, guid, PackagedComHelper.TryGetExplorerCommandTitle(guid, type)));
                             }
                         }
                     }
@@ -187,7 +189,11 @@ namespace ModernContextMenuManager.Helpers
                 }
                 if (hr.Succeeded)
                 {
-                    return span.TrimEnd('\0').ToString();
+                    var length = span.IndexOf('\0');
+                    if(length > 0)
+                    {
+                        return span[..length].ToString();
+                    }
                 }
                 return null;
             }
@@ -271,7 +277,7 @@ namespace ModernContextMenuManager.Helpers
         }
     }
 
-    public record class ContextMenuItem(string Id, Guid Clsid);
+    public record class ContextMenuItem(string Type, string Id, Guid Clsid, string? Title);
 
     public record class AppInfo(string DisplayName, string IconPath, bool AppListEntry, IReadOnlyList<ContextMenuItem> ContextMenuItems);
 

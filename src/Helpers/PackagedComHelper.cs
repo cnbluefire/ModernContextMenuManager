@@ -1,10 +1,16 @@
-﻿using Microsoft.Win32;
+﻿using Avalonia.Controls;
+using Microsoft.Win32;
 using System;
+using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Win32.Foundation;
 
 namespace ModernContextMenuManager.Helpers
 {
@@ -154,6 +160,130 @@ namespace ModernContextMenuManager.Helpers
             catch { }
 
             return false;
+        }
+
+        private static ConcurrentDictionary<(Guid clsid, string type), string?> cachedExplorerCommandTitle = new();
+
+        public static void DeleteMCMMFolder()
+        {
+            var tmpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MCMM_Dir");
+            if (System.IO.Directory.Exists(tmpPath))
+            {
+                try
+                {
+                    System.IO.Directory.Delete(tmpPath, true);
+                }
+                catch { }
+            }
+        }
+
+        public static unsafe string? TryGetExplorerCommandTitle(Guid clsid, string type)
+        {
+            static HRESULT GetShellItemArray(string type, out Windows.Win32.UI.Shell.IShellItemArray* ppv)
+            {
+                ppv = null;
+
+                if (type == @"Directory\Background")
+                {
+                    fixed (Windows.Win32.UI.Shell.IShellItemArray** ptr = &ppv)
+                    {
+                        return Windows.Win32.PInvoke.SHCreateShellItemArrayFromIDLists(0, null, ptr);
+                    }
+                }
+
+                var path = "";
+
+                var tmpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MCMM_Dir");
+                if (!System.IO.Directory.Exists(tmpPath))
+                {
+                    System.IO.Directory.CreateDirectory(tmpPath);
+                }
+
+                if (type == "Directory")
+                {
+                    path = tmpPath;
+                }
+                else
+                {
+                    if (type == "*")
+                    {
+                        path = System.IO.Path.Combine(tmpPath, "MCMM");
+                    }
+                    else
+                    {
+                        path = System.IO.Path.Combine(tmpPath, $"MCMM{type}");
+                    }
+                    if (!System.IO.File.Exists(path))
+                    {
+                        System.IO.File.Create(path).Dispose();
+                    }
+                }
+
+                void* pShellItem = null;
+                try
+                {
+                    var hr = Windows.Win32.PInvoke.SHCreateItemFromParsingName(path, null, Windows.Win32.UI.Shell.IShellItem.IID_Guid, out pShellItem);
+                    if (hr.Succeeded)
+                    {
+                        ((Windows.Win32.UI.Shell.IShellItem*)pShellItem)->GetDisplayName(Windows.Win32.UI.Shell.SIGDN.SIGDN_NORMALDISPLAY, out var name);
+
+                        hr = Windows.Win32.PInvoke.SHCreateShellItemArrayFromShellItem((Windows.Win32.UI.Shell.IShellItem*)pShellItem, Windows.Win32.UI.Shell.IShellItemArray.IID_Guid, out var pShellItemArray);
+                        if (hr.Succeeded)
+                        {
+                            ppv = (Windows.Win32.UI.Shell.IShellItemArray*)pShellItemArray;
+                        }
+                    }
+                    return hr;
+                }
+                finally
+                {
+                    if (pShellItem != null) Marshal.Release((nint)pShellItem);
+                }
+            }
+
+            return cachedExplorerCommandTitle.GetOrAdd((clsid, type), static (key) =>
+            {
+                void* pExplorerCommand = null;
+                Windows.Win32.UI.Shell.IShellItemArray* pShellItemArray = null;
+                PWSTR pName = default;
+
+                try
+                {
+                    var hr = Windows.Win32.PInvoke.CoCreateInstance(
+                        key.clsid,
+                        null,
+                        Windows.Win32.System.Com.CLSCTX.CLSCTX_ALL,
+                        Windows.Win32.UI.Shell.IExplorerCommand.IID_Guid,
+                        out pExplorerCommand);
+
+                    if (hr.Succeeded)
+                    {
+                        try
+                        {
+                            hr = GetShellItemArray(key.type, out pShellItemArray);
+                            if (hr.Succeeded)
+                            {
+                                hr = ((Windows.Win32.UI.Shell.IExplorerCommand*)pExplorerCommand)->GetTitle(pShellItemArray, out pName);
+                                if (hr.Succeeded && pName.Length > 0)
+                                {
+                                    return pName.ToString();
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+                finally
+                {
+                    if (pExplorerCommand != null) Marshal.Release((nint)pExplorerCommand);
+                    if (pShellItemArray != null) Marshal.Release((nint)pShellItemArray);
+                    if (pName.Value != null) Marshal.FreeCoTaskMem((nint)pName.Value);
+                }
+
+                return null;
+            });
+
         }
 
         public record struct ComPackage(string PackageFullName, ComPackageComInfo[] Clsids);

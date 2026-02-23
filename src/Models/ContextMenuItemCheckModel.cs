@@ -37,8 +37,23 @@ namespace ModernContextMenuManager.Models
         {
             get
             {
-                if (string.IsNullOrEmpty(ContextMenuItem.Id)) return $"{ContextMenuItem.Clsid:B}";
-                return $"{ContextMenuItem.Id}\n{ContextMenuItem.Clsid:B}";
+                var title = ContextMenuItem.Title;
+                if (string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(ContextMenuItem.Id)) title = $"[{ContextMenuItem.Id}]";
+
+                if (!string.IsNullOrEmpty(ContextMenuItem.Type) && !string.IsNullOrEmpty(title))
+                {
+                    return $"[{ContextMenuItem.Type}] {title}\n{ContextMenuItem.Clsid:B}";
+                }
+                else if (!string.IsNullOrEmpty(ContextMenuItem.Type))
+                {
+                    return $"[{ContextMenuItem.Type}]\n{ContextMenuItem.Clsid:B}";
+                }
+                else if (!string.IsNullOrEmpty(title))
+                {
+                    return $"{title}\n{ContextMenuItem.Clsid:B}";
+                }
+
+                return $"{ContextMenuItem.Clsid:B}";
             }
         }
     }

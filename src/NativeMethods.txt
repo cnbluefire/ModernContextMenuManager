@@ -3,5 +3,13 @@ GetPackageInfo
 ClosePackageInfo
 GetThreadPreferredUILanguages
 SHLoadIndirectString
+SHCreateItemFromParsingName
+SHCreateShellItemArrayFromShellItem
+SHCreateShellItemArrayFromIDLists
+CoCreateInstance
 
 PACKAGE_INFO
+
+IExplorerCommand
+IShellItem
+IShellItemArray
