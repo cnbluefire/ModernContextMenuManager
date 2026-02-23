@@ -53,7 +53,7 @@ namespace ModernContextMenuManager.ViewModels
                         var packageInfo = PackageManager.GetPackageInfoByFullName(comPackages[i].PackageFullName);
                         if (packageInfo != null)
                         {
-                            var appInfo = await PackageManager.GetPackageAppInfoAsync(packageInfo.PackageInstallLocation);
+                            var appInfo = await PackageManager.GetPackageAppInfoAsync(packageInfo);
                             if (appInfo != null && appInfo.ContextMenuGuids.Count > 0)
                             {
                                 if (string.IsNullOrEmpty(search) || appInfo.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase) || appInfo.ContextMenuGuids.Any(c => GuidContains(c, search)))

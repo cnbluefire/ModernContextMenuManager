@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Windows.Win32;
 using Windows.Win32.Storage.Packaging.Appx;
 
 namespace ModernContextMenuManager.Helpers
@@ -82,9 +83,9 @@ namespace ModernContextMenuManager.Helpers
         }
 
 
-        public static async Task<AppInfo?> GetPackageAppInfoAsync(string packageInstallLocation, CancellationToken cancellationToken = default)
+        public static async Task<AppInfo?> GetPackageAppInfoAsync(PackageInfo packageInfo, CancellationToken cancellationToken = default)
         {
-            var xmlDocument = await GetAppxManifestDocumentAsync(packageInstallLocation, cancellationToken);
+            var xmlDocument = await GetAppxManifestDocumentAsync(packageInfo.PackageInstallLocation, cancellationToken);
 
             if (xmlDocument != null)
             {
@@ -133,7 +134,7 @@ namespace ModernContextMenuManager.Helpers
 
                 var logoNode = xmlDocument.SelectSingleNode("//default:Properties/default:Logo", namespaceManager);
                 string logo = logoNode?.InnerText ?? "";
-                var logoFullPath = Path.Combine(packageInstallLocation, logo);
+                var logoFullPath = Path.Combine(packageInfo.PackageInstallLocation, logo);
 
                 if (!File.Exists(logoFullPath))
                 {
@@ -157,6 +158,12 @@ namespace ModernContextMenuManager.Helpers
                     {
                         var displayName = appNode.Attributes?["DisplayName"]?.Value ?? "";
 
+                        if (displayName.StartsWith("ms-resource:", StringComparison.OrdinalIgnoreCase) is true)
+                        {
+                            var displayName2 = GetDisplayNameFromResource(packageInfo.PackageFullName, displayName);
+                            if (!string.IsNullOrEmpty(displayName2)) displayName = displayName2;
+                        }
+
                         return new(displayName, logoFullPath, appNode.Attributes?["AppListEntry"]?.Value != "none", clsids ?? []);
                     }
                 }
@@ -164,6 +171,25 @@ namespace ModernContextMenuManager.Helpers
                 if (clsids != null) return new AppInfo("", logoFullPath, false, clsids);
             }
             return null;
+
+            static string? GetDisplayNameFromResource(string packageFullName, string resourceUri)
+            {
+                const int BufferLength = 1000;
+
+                using var owner = MemoryPool<char>.Shared.Rent(BufferLength);
+                var span = owner.Memory.Span[..BufferLength];
+                var hr = PInvoke.SHLoadIndirectString($"@{{{packageFullName}? {resourceUri}}}", span);
+                if (hr == 0x80073B17)
+                {
+                    resourceUri = resourceUri.Replace("ms-resource:", "ms-resource:Resources/", StringComparison.OrdinalIgnoreCase);
+                    hr = PInvoke.SHLoadIndirectString($"@{{{packageFullName}? {resourceUri}}}", span);
+                }
+                if (hr.Succeeded)
+                {
+                    return span.TrimEnd('\0').ToString();
+                }
+                return null;
+            }
         }
 
         private static async Task<XmlDocument?> GetAppxManifestDocumentAsync(string packageInstallLocation, CancellationToken cancellationToken = default)

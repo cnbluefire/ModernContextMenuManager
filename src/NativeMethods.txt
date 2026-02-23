@@ -2,5 +2,6 @@
 GetPackageInfo
 ClosePackageInfo
 GetThreadPreferredUILanguages
+SHLoadIndirectString
 
 PACKAGE_INFO
