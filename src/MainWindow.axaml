@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:models="using:ModernContextMenuManager.Models"
 		xmlns:vm="using:ModernContextMenuManager.ViewModels"
+		xmlns:ui="using:FluentAvalonia.UI.Controls"
         x:Class="ModernContextMenuManager.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		TransparencyLevelHint="AcrylicBlur"
@@ -15,6 +16,32 @@
 		ExtendClientAreaToDecorationsHint="True">
 	<Grid x:Name="LayoutRoot" IsEnabled="{Binding SearchCommand.IsRunning, Converter={StaticResource NotConverter}}"
 		  RowDefinitions="40, Auto, *">
+		<Border Width="96" Height="96" Grid.RowSpan="3" Background="#99000000" CornerRadius="12" IsVisible="{Binding SearchCommand.IsRunning}" ZIndex="1">
+			<Border.Styles>
+				<!-- Since ProgressRing internally uses ReflectionBinding, 
+				which is incompatible with AOT, we override the binding values 
+				in the control's internal style with animation values here. -->
+				<Style Selector="ui|ProgressRing:indeterminate /template/ Ellipse#Track">
+					<Style.Animations>
+						<Animation Duration="0:0:0.01" FillMode="Forward">
+							<KeyFrame Cue="100%">
+								<Setter Property="StrokeThickness" Value="6"/>
+							</KeyFrame>
+						</Animation>
+					</Style.Animations>
+				</Style>
+				<Style Selector="ui|ProgressRing:indeterminate /template/ Arc#Fill">
+					<Style.Animations>
+						<Animation Duration="0:0:0.01" FillMode="Forward">
+							<KeyFrame Cue="100%">
+								<Setter Property="StrokeThickness" Value="6"/>
+							</KeyFrame>
+						</Animation>
+					</Style.Animations>
+				</Style>
+			</Border.Styles>
+			<ui:ProgressRing IsIndeterminate="{Binding SearchCommand.IsRunning}" Width="48" Height="48"/>
+		</Border>
 		<TextBlock FontSize="12" Text="Modern ContextMenu Manager" Margin="17,0" VerticalAlignment="Center" IsHitTestVisible="False" />
 		<Grid Grid.Row="1" ColumnDefinitions="*, Auto" Margin="16,4,16,12">
 			<TextBox x:Name="SearchBox" Text="{Binding SearchingText,Mode=TwoWay}" Watermark="Enter the app name or guid here." Margin="0,0,8,0" KeyDown="SearchBox_KeyDown" />

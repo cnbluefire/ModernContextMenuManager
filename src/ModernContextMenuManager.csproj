@@ -41,5 +41,6 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
 	</ItemGroup>
 </Project>
