@@ -94,37 +94,20 @@ namespace ModernContextMenuManager.Helpers
                 var namespaceManager = new XmlNamespaceManager(xmlDocument.NameTable);
 
                 namespaceManager.AddNamespace("default", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
-                namespaceManager.AddNamespace("desktop4", "http://schemas.microsoft.com/appx/manifest/desktop/windows10/4");
-                namespaceManager.AddNamespace("desktop5", "http://schemas.microsoft.com/appx/manifest/desktop/windows10/5");
                 namespaceManager.AddNamespace("uap", "http://schemas.microsoft.com/appx/manifest/uap/windows10");
 
-                var nodes1 = xmlDocument.SelectNodes("//desktop4:FileExplorerContextMenus//desktop4:Verb", namespaceManager);
-                var nodes2 = xmlDocument.SelectNodes("//desktop4:FileExplorerContextMenus//desktop5:Verb", namespaceManager);
+                var nodes = xmlDocument.SelectNodes("//*[local-name()='FileExplorerContextMenus']//*[local-name()='Verb']", namespaceManager);
 
-                if ((nodes1?.Count ?? 0) + (nodes2?.Count ?? 0) > 0)
+                if (nodes?.Count is > 0)
                 {
-                    var list = new List<ContextMenuItem>((nodes1?.Count ?? 0) + (nodes2?.Count ?? 0));
-                    if (nodes1 != null)
+                    var list = new List<ContextMenuItem>(nodes.Count);
+                    if (nodes != null)
                     {
-                        for (int i = 0; i < nodes1.Count; i++)
+                        for (int i = 0; i < nodes.Count; i++)
                         {
-                            var type = nodes1[i]?.ParentNode?.Attributes?["Type"]?.Value ?? "";
-                            var id = nodes1[i]?.Attributes?["Id"]?.Value ?? "";
-                            var clsid = nodes1[i]?.Attributes?["Clsid"]?.Value;
-                            if (Guid.TryParse(clsid, out var guid))
-                            {
-                                list.Add(new(type, id, guid, PackagedComHelper.TryGetExplorerCommandTitle(guid, type)));
-                            }
-                        }
-                    }
-
-                    if (nodes2 != null)
-                    {
-                        for (int i = 0; i < nodes2.Count; i++)
-                        {
-                            var type = nodes2[i]?.ParentNode?.Attributes?["Type"]?.Value ?? "";
-                            var id = nodes2[i]?.Attributes?["Id"]?.Value ?? "";
-                            var clsid = nodes2[i]?.Attributes?["Clsid"]?.Value;
+                            var type = nodes[i]?.ParentNode?.Attributes?["Type"]?.Value ?? "";
+                            var id = nodes[i]?.Attributes?["Id"]?.Value ?? "";
+                            var clsid = nodes[i]?.Attributes?["Clsid"]?.Value;
                             if (Guid.TryParse(clsid, out var guid))
                             {
                                 list.Add(new(type, id, guid, PackagedComHelper.TryGetExplorerCommandTitle(guid, type)));

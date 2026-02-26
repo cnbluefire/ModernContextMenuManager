@@ -185,10 +185,7 @@ namespace ModernContextMenuManager.Helpers
 
                 if (type == @"Directory\Background")
                 {
-                    fixed (Windows.Win32.UI.Shell.IShellItemArray** ptr = &ppv)
-                    {
-                        return Windows.Win32.PInvoke.SHCreateShellItemArrayFromIDLists(0, null, ptr);
-                    }
+                    return (HRESULT)0;
                 }
 
                 var path = "";
