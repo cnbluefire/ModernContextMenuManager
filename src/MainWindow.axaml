@@ -16,7 +16,19 @@
 		ExtendClientAreaToDecorationsHint="True">
 	<Grid x:Name="LayoutRoot" IsEnabled="{Binding SearchCommand.IsRunning, Converter={StaticResource NotConverter}}"
 		  RowDefinitions="40, Auto, *">
-		<Border Width="96" Height="96" Grid.RowSpan="3" Background="#99000000" CornerRadius="12" IsVisible="{Binding SearchCommand.IsRunning}" ZIndex="1">
+		<Grid.Resources>
+			<ResourceDictionary>
+				<ResourceDictionary.ThemeDictionaries>
+					<ResourceDictionary x:Key='Light'>
+						<SolidColorBrush x:Key='ProgressRingBorderBackground'>#99FFFFFF</SolidColorBrush>
+					</ResourceDictionary>
+					<ResourceDictionary x:Key='Dark'>
+						<SolidColorBrush x:Key='ProgressRingBorderBackground'>#99000000</SolidColorBrush>
+					</ResourceDictionary>
+				</ResourceDictionary.ThemeDictionaries>
+			</ResourceDictionary>
+		</Grid.Resources>
+		<Border Width="96" Height="96" Grid.RowSpan="3" Background="{DynamicResource ProgressRingBorderBackground}" CornerRadius="12" IsVisible="{Binding SearchCommand.IsRunning}" ZIndex="1">
 			<Border.Styles>
 				<!-- Since ProgressRing internally uses ReflectionBinding, 
 				which is incompatible with AOT, we override the binding values 
